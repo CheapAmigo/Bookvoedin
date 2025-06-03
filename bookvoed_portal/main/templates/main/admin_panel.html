@@ -1,0 +1,58 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Панель администратора{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Карточки на рассмотрении</h2>
+
+{% if pending_cards %}
+    <div class="list-group">
+        {% for card in pending_cards %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ card.author }} - {{ card.title }}</h5>
+                    <p class="card-text">
+                        <strong>Пользователь:</strong> {{ card.user.username }}<br>
+                        <strong>Тип:</strong> {{ card.get_book_type_display }}<br>
+                        {% if card.publisher %}<strong>Издательство:</strong> {{ card.publisher }}<br>{% endif %}
+                        {% if card.year %}<strong>Год:</strong> {{ card.year }}<br>{% endif %}
+                        {% if card.binding %}<strong>Переплет:</strong> {{ card.get_binding_display }}<br>{% endif %}
+                        {% if card.condition %}<strong>Состояние:</strong> {{ card.get_condition_display }}{% endif %}
+                    </p>
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="card_id" value="{{ card.id }}">
+                        <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Одобрить</button>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ card.id }}">Отклонить</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal for rejection reason -->
+            <div class="modal fade" id="rejectModal{{ card.id }}" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="rejectModalLabel">Причина отклонения</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="card_id" value="{{ card.id }}">
+                            <div class="modal-body">
+                                <textarea name="reason" class="form-control" placeholder="Укажите причину отклонения" required></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                <button type="submit" name="action" value="reject" class="btn btn-danger">Отклонить</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Нет карточек на рассмотрении.</p>
+{% endif %}
+{% endblock %}
